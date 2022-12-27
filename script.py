@@ -1,4 +1,6 @@
 #import pyodbc
+import configparser
+import requests
 
 config = configparser.ConfigParser()
 config.read('config.conf')
