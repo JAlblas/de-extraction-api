@@ -4,6 +4,10 @@ import configparser
 import requests
 import json
 import csv
+from datetime import datetime
+
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
 
 def fetchData():
@@ -26,6 +30,7 @@ def fetchData():
                 current_earthquake = []
                 print(feature)
                 print("==================================")
+                current_earthquake.append(feature['properties']['ids'])
                 current_earthquake.append(feature['properties']['title'])
                 current_earthquake.append(feature['properties']['time'])
                 current_earthquake.append(feature['properties']['url'])
@@ -46,16 +51,28 @@ def fetchData():
 
 
 def write_to_csv(earthquakes):
-    csv_file = 'earthquakes.csv'
+    try:
+        today = datetime.now()
+        csv_file = f"./data/earthquakes-{today.day}{today.month}{today.year}.csv"
 
-    with open(csv_file, 'w') as fp:
-        csv_writer = csv.writer(fp, delimiter='|')
-        csv_writer.writerows(earthquakes)
-    return
+        with open(csv_file, 'w') as fp:
+            csv_writer = csv.writer(fp, delimiter='|')
+            csv_writer.writerows(earthquakes)
+        return
+    except Exception as ex:
+        print('Exception:')
+        print(ex)
 
 
 def load():
-    return
+    try:
+        print("Azure Blob Storage Python quickstart sample")
+
+    # Quickstart code goes here
+
+    except Exception as ex:
+        print('Exception:')
+        print(ex)
 
 
 fetchData()
