@@ -5,6 +5,7 @@ import requests
 import json
 import csv
 from datetime import datetime
+import uuid
 
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
@@ -12,11 +13,6 @@ from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
 def fetchData():
     try:
-        config = configparser.ConfigParser()
-        config.read('config.conf')
-
-        # print(config['DEFAULT']['url'])
-
         url = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson'
 
         response = requests.get(url)
@@ -53,22 +49,42 @@ def fetchData():
 def write_to_csv(earthquakes):
     try:
         today = datetime.now()
+
         csv_file = f"./data/earthquakes-{today.day}{today.month}{today.year}.csv"
+        blob_name = f"{today.day}{today.month}{today.year}.csv"
 
         with open(csv_file, 'w') as fp:
             csv_writer = csv.writer(fp, delimiter='|')
             csv_writer.writerows(earthquakes)
+
+        load(csv_file, blob_name)
         return
     except Exception as ex:
         print('Exception:')
         print(ex)
 
 
-def load():
+def load(local_file_name, blob_name):
     try:
-        print("Azure Blob Storage Python quickstart sample")
+        config = configparser.ConfigParser()
+        config.read('config.conf')
 
-    # Quickstart code goes here
+        connect_str = config['AZURE']['AZURE_STORAGE_CONNECTION_STRING']
+
+        # Create a unique name for the container
+        container_name = config['AZURE']["CONTAINER_NAME"]
+
+        # Create a blob client using the local file name as the name for the blob
+        blob_client = BlobClient.from_connection_string(
+            conn_str=connect_str, container_name=container_name,
+            blob_name=blob_name)
+
+        print("\nUploading to Azure Storage as blob:\n\t" + local_file_name)
+
+        # Upload the created file
+        with open(file=local_file_name, mode="rb") as data:
+            print(data)
+            blob_client.upload_blob(data)
 
     except Exception as ex:
         print('Exception:')
